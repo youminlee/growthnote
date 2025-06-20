@@ -126,34 +126,38 @@
   </script>
   <script>
     const summarizeBtn = document.getElementById('summarizeBtn');
-summarizeBtn.addEventListener('click', async () => {
-  const inputText = document.getElementById("output").value;
-  if (!inputText) {
-    alert('먼저 텍스트를 업로드해주세요.');
-    return;
-  }
-
-  summarizeBtn.innerText = "문서 생성 중...";
-
-  try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbwlKbnvw3muQ6h7DUKf8mZqY0ua4fh0dcvgksM-yF9JAMO3MZ7mU7xd9bVJm5OWozyj/exec", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ content: inputText })
+    summarizeBtn.addEventListener('click', async () => {
+      const inputText = document.getElementById("output").value;
+      if (!inputText || inputText.trim().length === 0) {
+        alert('먼저 텍스트를 업로드해주세요.');
+        return;
+      }
+  
+      summarizeBtn.innerText = "문서 생성 중...";
+  
+      // ✅ CORS 우회 프록시 URL 사용
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbwlKbnvw3muQ6h7DUKf8mZqY0ua4fh0dcvgksM-yF9JAMO3MZ7mU7xd9bVJm5OWozyj/exec";
+      const corsProxyUrl = "https://corsproxy.io/?" + encodeURIComponent(scriptUrl);
+  
+      try {
+        const response = await fetch(corsProxyUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ content: inputText })
+        });
+  
+        const docUrl = await response.text();
+        window.open(docUrl, "_blank");
+      } catch (err) {
+        alert("문서 생성에 실패했습니다. 콘솔을 확인해주세요.");
+        console.error(err);
+      } finally {
+        summarizeBtn.innerText = "✨ 요약 및 액션 도출";
+      }
     });
-
-    const docUrl = await response.text();
-    window.open(docUrl, "_blank");
-  } catch (err) {
-    alert("문서 생성에 실패했습니다. 콘솔을 확인해주세요.");
-    console.error(err);
-  } finally {
-    summarizeBtn.innerText = "✨ 요약 및 액션 도출";
-  }
-});
-
-  </script>  
+  </script>
+    
 </body>
 </html>
